@@ -1,0 +1,11 @@
+name: async_tracker
+description: >
+  Tracks async callbacks (e.g. microtask, Future, Stream, Timer) and
+  indicates when any of these has completed their executions.
+  It can be used to track and react on async event chains.
+version: 0.1.0
+homepage: https://github.com/isoos/async_tracker
+author: Istvan Soos <istvan.soos@gmail.com>
+
+environment:
+  sdk: '>=1.20.1 <2.0.0'
