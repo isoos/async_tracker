@@ -14,8 +14,8 @@ class AsyncTracker {
   bool _scheduled = false;
   Timer _timer;
 
-  final List<Function> _callbacks = [];
-  final StreamController _controller = new StreamController.broadcast();
+  final _callbacks = <Function>[];
+  final _controller = StreamController.broadcast();
 
   int _microtaskCount = 0;
   int _runningCount = 0;
@@ -25,7 +25,7 @@ class AsyncTracker {
   AsyncTracker({Zone zone, Duration duration}) : _duration = duration {
     _parent = zone ?? Zone.current;
     _tracked = _parent.fork(
-      specification: new ZoneSpecification(
+      specification: ZoneSpecification(
         scheduleMicrotask: _scheduleMicrotask,
         run: _run,
         runUnary: _runUnary,
@@ -46,7 +46,7 @@ class AsyncTracker {
   /// Add event listener that will get called when the tracker emits an event.
   void addListener(Function callback) {
     if (_controller.isClosed) {
-      throw new StateError('Closed.');
+      throw StateError('Closed.');
     }
     _callbacks.add(callback);
   }
@@ -136,7 +136,7 @@ class AsyncTracker {
       _parent.scheduleMicrotask(_publishEvent);
     } else if (_timer == null) {
       _scheduled = true;
-      _timer = new Timer(_duration, _publishEvent);
+      _timer = Timer(_duration, _publishEvent);
     }
   }
 
