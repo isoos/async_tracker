@@ -1,6 +1,6 @@
 import 'package:async_tracker/async_tracker.dart';
 
-main() {
+void main() {
   final tracker = AsyncTracker();
   tracker.addListener(() {
     print('tracker has detected an execution');

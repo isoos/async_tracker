@@ -7,12 +7,12 @@ import 'dart:async';
 /// Clients of the [AsyncTracker] either listen on the [stream] or they can
 /// add or remove listeners that receive these events.
 class AsyncTracker {
-  final Duration _duration;
-  Zone _parent;
-  Zone _tracked;
+  final Duration? _duration;
+  late final Zone _parent;
+  late final Zone _tracked;
 
   bool _scheduled = false;
-  Timer _timer;
+  Timer? _timer;
 
   final _callbacks = <Function>[];
   final _controller = StreamController.broadcast();
@@ -22,7 +22,7 @@ class AsyncTracker {
 
   /// When [duration] is specified, the tracking event is schedule via a [Timer]
   /// in the original [zone], otherwise it is scheduled via a microtask.
-  AsyncTracker({Zone zone, Duration duration}) : _duration = duration {
+  AsyncTracker({Zone? zone, Duration? duration}) : _duration = duration {
     _parent = zone ?? Zone.current;
     _tracked = _parent.fork(
       specification: ZoneSpecification(
@@ -41,7 +41,7 @@ class AsyncTracker {
   Stream get stream => _controller.stream;
 
   /// Runs [fn] in the tracked zone.
-  R run<R>(R fn()) => trackedZone.run(fn);
+  R run<R>(R Function() fn) => trackedZone.run(fn);
 
   /// Add event listener that will get called when the tracker emits an event.
   void addListener(Function callback) {
@@ -70,7 +70,8 @@ class AsyncTracker {
 
   bool get _hasListener => _callbacks.isNotEmpty || _controller.hasListener;
 
-  void _scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, void f()) {
+  void _scheduleMicrotask(
+      Zone self, ZoneDelegate parent, Zone zone, void Function() f) {
     _microtaskCount++;
     final task = () {
       try {
@@ -83,7 +84,7 @@ class AsyncTracker {
     parent.scheduleMicrotask(zone, task);
   }
 
-  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R fn()) {
+  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R Function() fn) {
     try {
       _runningCount++;
       return parent.run(zone, fn);
@@ -94,7 +95,7 @@ class AsyncTracker {
   }
 
   R _runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R fn(T arg), T arg) {
+      Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) fn, T arg) {
     try {
       _runningCount++;
       return parent.runUnary(zone, fn, arg);
@@ -105,7 +106,7 @@ class AsyncTracker {
   }
 
   R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R fn(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
+      R Function(T1 arg1, T2 arg2) fn, T1 arg1, T2 arg2) {
     try {
       _runningCount++;
       return parent.runBinary(zone, fn, arg1, arg2);
@@ -115,8 +116,8 @@ class AsyncTracker {
     }
   }
 
-  Timer _createTimer(
-      Zone self, ZoneDelegate parent, Zone zone, Duration duration, fn()) {
+  Timer _createTimer(Zone self, ZoneDelegate parent, Zone zone,
+      Duration duration, Function() fn) {
     final wrappedFn = () {
       try {
         _runningCount++;
@@ -136,7 +137,7 @@ class AsyncTracker {
       _parent.scheduleMicrotask(_publishEvent);
     } else if (_timer == null) {
       _scheduled = true;
-      _timer = Timer(_duration, _publishEvent);
+      _timer = Timer(_duration!, _publishEvent);
     }
   }
 
