@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- Upgraded SDK constraint to allow Dart 3.
+
 ## 0.1.3
 
 - Migrated to null safety.

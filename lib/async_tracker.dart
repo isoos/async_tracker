@@ -73,14 +73,15 @@ class AsyncTracker {
   void _scheduleMicrotask(
       Zone self, ZoneDelegate parent, Zone zone, void Function() f) {
     _microtaskCount++;
-    final task = () {
+    task() {
       try {
         f();
       } finally {
         _microtaskCount--;
         _trigger();
       }
-    };
+    }
+
     parent.scheduleMicrotask(zone, task);
   }
 
@@ -118,7 +119,7 @@ class AsyncTracker {
 
   Timer _createTimer(Zone self, ZoneDelegate parent, Zone zone,
       Duration duration, Function() fn) {
-    final wrappedFn = () {
+    wrappedFn() {
       try {
         _runningCount++;
         fn();
@@ -126,7 +127,8 @@ class AsyncTracker {
         _runningCount--;
         _trigger();
       }
-    };
+    }
+
     return parent.createTimer(zone, duration, wrappedFn);
   }
 
@@ -148,6 +150,8 @@ class AsyncTracker {
     if (!_controller.isClosed && _controller.hasListener) {
       _controller.add(null);
     }
-    _callbacks.forEach((fn) => fn());
+    for (var fn in _callbacks) {
+      fn();
+    }
   }
 }
